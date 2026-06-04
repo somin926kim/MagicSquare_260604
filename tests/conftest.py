@@ -9,7 +9,7 @@ TESTS_ROOT = Path(__file__).resolve().parent
 if str(TESTS_ROOT) not in sys.path:
     sys.path.insert(0, str(TESTS_ROOT))
 
-__all__ = ["grid_g1"]
+__all__ = ["grid_g1", "grid_g1_solved"]
 
 
 @pytest.fixture
@@ -20,4 +20,15 @@ def grid_g1():
         [5, 10, 0, 8],
         [9, 6, 7, 12],
         [4, 15, 14, 0],
+    ]
+
+
+@pytest.fixture
+def grid_g1_solved():
+    """G1 solved — blanks (2,3)=11, (4,4)=1; all 10 lines sum to 34."""
+    return [
+        [16, 3, 2, 13],
+        [5, 10, 11, 8],
+        [9, 6, 7, 12],
+        [4, 15, 14, 1],
     ]
