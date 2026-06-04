@@ -1,6 +1,13 @@
 """Shared pytest fixtures — grid data only (no domain logic)."""
 
+import sys
+from pathlib import Path
+
 import pytest
+
+TESTS_ROOT = Path(__file__).resolve().parent
+if str(TESTS_ROOT) not in sys.path:
+    sys.path.insert(0, str(TESTS_ROOT))
 
 __all__ = ["grid_g1"]
 

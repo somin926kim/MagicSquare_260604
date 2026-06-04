@@ -53,11 +53,13 @@ MagicSquare_260604/
 ├── Report/
 │   ├── 01.MagicSquare_ProblemDefinition_Report.md
 │   ├── 02.MagicSquare_Session3_CursorDesign_Report.md
-│   └── 03.MagicSquare_TDD_RED_Report.md
+│   ├── 03.MagicSquare_TDD_RED_Report.md
+│   └── 04.MagicSquare_GREEN_GoldenMaster_Report.md
 ├── Prompting/
 │   ├── 01.MagicSquare_ProblemDefinition-Transcript.md
 │   ├── 02.MagicSquare_Session3_CursorDesign-Transcript.md
-│   └── 03.MagicSquare_TDD_RED-Transcript.md
+│   ├── 03.MagicSquare_TDD_RED-Transcript.md
+│   └── 04.MagicSquare_GREEN_GoldenMaster-Transcript.md
 ├── .cursor/
 │   ├── commands/
 │   │   └── tdd-red.md              # RED 단계 Command
@@ -69,11 +71,18 @@ MagicSquare_260604/
 │   ├── conftest.py                 # 격자 픽스처 (G1 등, 로직 없음)
 │   ├── entity/
 │   │   ├── test_d_val_04.py        # D-VAL-04 RED (Mom Test `/`)
-│   │   └── test_d_loc_01.py        # D-LOC-01 RED
+│   │   ├── test_d_loc_01.py        # D-LOC-01 GREEN
+│   │   └── test_d_sol_01.py        # D-SOL-01 GREEN + golden
+│   ├── golden/
+│   │   └── d_sol_01_g1_step_a.approved.txt
+│   ├── _approval.py                # Golden Master 헬퍼
 │   ├── control/
 │   └── boundary/
 └── src/
     ├── entity/
+    │   ├── constants.py
+    │   ├── locator.py
+    │   └── solver.py
     ├── control/
     └── boundary/
 ```
@@ -86,8 +95,8 @@ MagicSquare_260604/
 |---------|-----|------|
 | D-VAL-04 | FR-VAL-04 | 반대 `/` 합 = 34 **(Mom Test, RED ✅)** |
 | D-VAL-05 | FR-VAL-05 | 10선 전체 = 34 |
-| D-LOC-01 | FR-LOC-01 | 빈칸 2곳 좌표 (1-index) **(RED ✅)** |
-| D-SOL-01 | FR-SOL-01 | 빈칸 2개 풀이 → `int[6]` |
+| D-LOC-01 | FR-LOC-01 | 빈칸 2곳 좌표 (1-index) **(GREEN ✅)** |
+| D-SOL-01 | FR-SOL-01 | 빈칸 2개 풀이 → `int[6]` **(GREEN ✅ + golden)** |
 
 **권장 RED 순서:** D-VAL-04 → D-VAL-05 → D-LOC-01 → D-SOL-01
 
@@ -147,9 +156,11 @@ Logic Track RED 작업 시 **`red`** 브랜치에서 진행.
 | [Report/01](Report/01.MagicSquare_ProblemDefinition_Report.md) | Mom Test · R-G-I-O · 문제 정의 |
 | [Report/02](Report/02.MagicSquare_Session3_CursorDesign_Report.md) | 세션 3 Harness · `.cursorrules` · Git 동기화 |
 | [Report/03](Report/03.MagicSquare_TDD_RED_Report.md) | spec→red 통합 · RED 스켈레톤 · green 전략 |
+| [Report/04](Report/04.MagicSquare_GREEN_GoldenMaster_Report.md) | D-LOC/D-SOL GREEN · Golden Master |
 | [Prompting/01](Prompting/01.MagicSquare_ProblemDefinition-Transcript.md) | STEP 1 Mom Test 인터뷰 Export |
 | [Prompting/02](Prompting/02.MagicSquare_Session3_CursorDesign-Transcript.md) | STEP 3 Harness 세션 Export |
 | [Prompting/03](Prompting/03.MagicSquare_TDD_RED-Transcript.md) | TDD RED 루프 세션 Export |
+| [Prompting/04](Prompting/04.MagicSquare_GREEN_GoldenMaster-Transcript.md) | GREEN · Golden Master 세션 Export |
 
 ## 범위 (In / Out)
 
@@ -161,14 +172,12 @@ Logic Track RED 작업 시 **`red`** 브랜치에서 진행.
 
 | 상태 | 항목 |
 |------|------|
-| ✅ | PRD · Mom Test 문제 정의 · ECB 분류 |
-| ✅ | `.cursorrules` · `pyproject.toml` · `src/`/`tests/` ECB 골격 (`spec` 반영) |
-| ✅ | pytest harness (`tests/conftest.py`, `grid_g1`) |
-| ✅ | **D-VAL-04** · **D-LOC-01** RED 스켈레톤 |
-| 🔲 | `red` branch commit (tests/, .cursor/, README) |
-| 🔲 | D-VAL-04 GREEN — `validate_anti_diagonal` entity 구현 |
-| 🔲 | D-VAL-05 → D-SOL-01 RED/GREEN |
-| 🔲 | U-IN-01 · U-IN-02 boundary RED |
+| ✅ | PRD · Mom Test · ECB · Harness (`spec`/`red`) |
+| ✅ | **D-LOC-01** GREEN · **D-SOL-01** GREEN + golden |
+| ✅ | `tests/_approval.py` · `tests/golden/d_sol_01_g1_step_a.approved.txt` |
+| 🔲 | D-VAL-04 GREEN — `validate_anti_diagonal` (Mom Test `/`) |
+| 🔲 | D-VAL-05 · U-IN-01/02 RED/GREEN |
+| 🔲 | `green` commit · `origin/green` push (요청 시) |
 
 ## 표면 문제 (하지 않을 것)
 
