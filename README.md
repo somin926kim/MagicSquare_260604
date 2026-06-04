@@ -26,52 +26,149 @@
 | SC-2 | 한 줄이라도 ≠34 → **실패 + 깨진 줄 식별** |
 | SC-3 | 동일 유형 문제에서 원인 특정 **1분 이내** (기준: 과거 15분) |
 
-## 아키텍처 (목표)
+## 아키텍처
 
 - **ECB:** Entity(판정·풀이) / Control(흐름) / Boundary(UI·I/O)
-- **Dual-Track TDD:** Logic Track + UI Track
+- **Dual-Track TDD:** Logic Track (`D-*`) + UI Track (`U-*`)
 - **RED 우선:** pytest FAIL 확인 → GREEN → REFACTOR
 
-| 계층 | 후보 (슬라이드 4.1) |
-|------|---------------------|
-| Entity | `MagicSquare`, `Cell`, `SolveResult` |
-| Control | `SquareValidator`, `MissingFinder`, `Solver` |
-| Boundary | `GridUI`, `InputHandler`, `ResultDisplay` |
+| 계층 | 후보 | 역할 |
+|------|------|------|
+| Entity | `MagicSquare`, `Cell`, `SolveResult` | 10선 판정·빈칸 탐색·풀이 |
+| Control | `SquareValidator`, `MissingFinder`, `Solver` | 흐름·entity 호출·결과 매핑 |
+| Boundary | `GridUI`, `InputHandler`, `ResultDisplay` | 입력 검증·UI·E001~E007 반환 |
 
-## 프로젝트 구조 (현재)
+의존 방향: **boundary → control → entity** (단방향). E001~E007 최종 반환은 **boundary**.
+
+## 프로젝트 구조
 
 ```
 MagicSquare_260604/
 ├── README.md
+├── .cursorrules                    # ECB·Dual-Track TDD 헌법
+├── pyproject.toml                  # pytest harness (pythonpath=src)
+├── .gitignore
 ├── docs/
 │   └── PRD.md
 ├── Report/
-│   └── 01.MagicSquare_ProblemDefinition_Report.md
-└── Prompting/
-    └── 01.MagicSquare_ProblemDefinition-Transcript.md
+│   ├── 01.MagicSquare_ProblemDefinition_Report.md
+│   ├── 02.MagicSquare_Session3_CursorDesign_Report.md
+│   └── 03.MagicSquare_TDD_RED_Report.md
+├── Prompting/
+│   ├── 01.MagicSquare_ProblemDefinition-Transcript.md
+│   ├── 02.MagicSquare_Session3_CursorDesign-Transcript.md
+│   └── 03.MagicSquare_TDD_RED-Transcript.md
+├── .cursor/
+│   ├── commands/
+│   │   └── tdd-red.md              # RED 단계 Command
+│   └── skills/
+│       └── magic-square-tdd/       # TDD·ECB 절차 Skill
+│           ├── SKILL.md
+│           └── reference.md        # D-* Test ID SSOT
+├── tests/
+│   ├── conftest.py                 # 격자 픽스처 (G1 등, 로직 없음)
+│   ├── entity/
+│   │   ├── test_d_val_04.py        # D-VAL-04 RED (Mom Test `/`)
+│   │   └── test_d_loc_01.py        # D-LOC-01 RED
+│   ├── control/
+│   └── boundary/
+└── src/
+    ├── entity/
+    ├── control/
+    └── boundary/
 ```
 
-`src/`, `tests/`, `.cursorrules` — **후속 세션** (Rule · Command · Test Loop)
+## 테스트 ID
+
+### Logic Track (`D-*`) — `tests/entity/` · `tests/control/`
+
+| Test ID | PRD | 대상 |
+|---------|-----|------|
+| D-VAL-04 | FR-VAL-04 | 반대 `/` 합 = 34 **(Mom Test, RED ✅)** |
+| D-VAL-05 | FR-VAL-05 | 10선 전체 = 34 |
+| D-LOC-01 | FR-LOC-01 | 빈칸 2곳 좌표 (1-index) **(RED ✅)** |
+| D-SOL-01 | FR-SOL-01 | 빈칸 2개 풀이 → `int[6]` |
+
+**권장 RED 순서:** D-VAL-04 → D-VAL-05 → D-LOC-01 → D-SOL-01
+
+전체 목록: [`.cursor/skills/magic-square-tdd/reference.md`](.cursor/skills/magic-square-tdd/reference.md)
+
+### UI Track (`U-*`) — `tests/boundary/`
+
+| Test ID | PRD | Given → Then |
+|---------|-----|--------------|
+| U-IN-01 | FR-IN-01 | `grid=None` → `"E003"` |
+| U-IN-02 | FR-IN-02 | 3×3 격자 → `"E001"` |
+
+## 개발
+
+### 요구 사항
+
+- Python **3.10+**
+- pytest **8+** (`pip install pytest`)
+
+### 테스트 실행
+
+```bash
+# D-VAL-04 RED (현재)
+python -m pytest tests/entity/test_d_val_04.py::test_d_val_04_anti_diagonal_sum -v
+
+# entity 테스트 전체
+python -m pytest tests/entity/ -v
+```
+
+RED 성공 기준: exit code ≠ 0 · FAIL 메시지에 Test ID 포함.
+
+### Git 브랜치 (관례)
+
+| 브랜치 | 용도 |
+|--------|------|
+| `main` | 안정 기준 |
+| `red` | RED — 실패 테스트만 (`tests/`·`conftest`) |
+| `green` | GREEN — `src/` 구현으로 테스트 통과 |
+| `refactoring` | REFACTOR — 동작 불변 정리 |
+| `staging` | 통합·검토 |
+
+Logic Track RED 작업 시 **`red`** 브랜치에서 진행.
+
+### Cursor 워크플로
+
+| 리소스 | 경로 | 설명 |
+|--------|------|------|
+| Skill | `.cursor/skills/magic-square-tdd/SKILL.md` | Dual-Track TDD·ECB 절차 SSOT |
+| Command | `.cursor/commands/tdd-red.md` | RED 단계 전용 |
+| Test ID | `.cursor/skills/magic-square-tdd/reference.md` | `D-*` 목록 |
 
 ## 문서
 
 | 문서 | 설명 |
 |------|------|
 | [docs/PRD.md](docs/PRD.md) | 기능 요구(FR)·도메인 규칙·C2C·SC |
-| [Report/01](Report/01.MagicSquare_ProblemDefinition_Report.md) | Mom Test · R-G-I-O · 세션 3 워크북 · 범위 In/Out |
-| [Prompting/01](Prompting/01.MagicSquare_ProblemDefinition-Transcript.md) | STEP 1 인터뷰 Export |
+| [Report/01](Report/01.MagicSquare_ProblemDefinition_Report.md) | Mom Test · R-G-I-O · 문제 정의 |
+| [Report/02](Report/02.MagicSquare_Session3_CursorDesign_Report.md) | 세션 3 Harness · `.cursorrules` · Git 동기화 |
+| [Report/03](Report/03.MagicSquare_TDD_RED_Report.md) | spec→red 통합 · RED 스켈레톤 · green 전략 |
+| [Prompting/01](Prompting/01.MagicSquare_ProblemDefinition-Transcript.md) | STEP 1 Mom Test 인터뷰 Export |
+| [Prompting/02](Prompting/02.MagicSquare_Session3_CursorDesign-Transcript.md) | STEP 3 Harness 세션 Export |
+| [Prompting/03](Prompting/03.MagicSquare_TDD_RED-Transcript.md) | TDD RED 루프 세션 Export |
 
-## 세션 3 범위 (In / Out)
+## 범위 (In / Out)
 
-**In:** 4×4·빈칸 2·10선=34 판정, ECB 분류, Rule / Command / (Skill) / Test Loop 설계  
+**In:** 4×4·빈칸 2·10선=34 판정, ECB, Dual-Track TDD, Rule / Command / Skill / Test Loop
 
-**Out:** PyQt 완성 앱·배포, 3×3/5×5 확장, Domain GREEN·UI 완료를 STEP 1 목표로 삼지 않음
+**Out:** PyQt 완성 앱·배포, 3×3/5×5 확장, Domain GREEN·UI 완료를 1차 목표로 삼지 않음
 
-## 다음 단계
+## 현재 진행 · 다음 단계
 
-1. `.cursorrules` — 4×4·10선·34·TDD/ECB 용어 고정  
-2. `/tdd-red` — **D-VAL-04** (`/`) RED → FAIL 확인 (Mom Test 재현)  
-3. `src/` · `tests/` ECB 골격 및 `pytest` harness
+| 상태 | 항목 |
+|------|------|
+| ✅ | PRD · Mom Test 문제 정의 · ECB 분류 |
+| ✅ | `.cursorrules` · `pyproject.toml` · `src/`/`tests/` ECB 골격 (`spec` 반영) |
+| ✅ | pytest harness (`tests/conftest.py`, `grid_g1`) |
+| ✅ | **D-VAL-04** · **D-LOC-01** RED 스켈레톤 |
+| 🔲 | `red` branch commit (tests/, .cursor/, README) |
+| 🔲 | D-VAL-04 GREEN — `validate_anti_diagonal` entity 구현 |
+| 🔲 | D-VAL-05 → D-SOL-01 RED/GREEN |
+| 🔲 | U-IN-01 · U-IN-02 boundary RED |
 
 ## 표면 문제 (하지 않을 것)
 
