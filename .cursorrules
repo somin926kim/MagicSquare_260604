@@ -1,0 +1,63 @@
+# MagicSquare_260604 — Cursor Rule (초안)
+
+## 프로젝트
+
+4×4 **부분 마방진**: 빈칸 `0` 정확히 2개, 값 `1~16` 중복 없음, **10선**(행4·열4·`\`·`/`) 합 = **마방진 상수 34**.
+PRD·Report/01~02가 SSOT. 본 Rule은 용어·계약·TDD/ECB 헌법만 고정한다.
+
+## 도메인 계약
+
+- 격자: 4×4. 셀: `0`(빈칸) 또는 `1..16`.
+- **10선**: 행 4 + 열 4 + 주대각 `\` + 반대 `/` — **전부** 검증 (Mom Test).
+- 성공 출력: `int[6]` = `[r1, c1, n1, r2, c2, n2]` — 좌표 **1-index** (1~4), row-major.
+- **MagicConstant SSOT**: `entity.constants`의 `MAGIC_CONSTANT`(34), `MAX_CELL_VALUE`(16), `GRID_SIZE`(4)만 사용. `34`/`16`/`4` 리터럴 산재 금지.
+
+## 오류 코드 (E001~E007)
+
+| 코드 | 의미 | emit |
+|------|------|------|
+| E001 | 격자 크기 ≠ 4×4 | boundary |
+| E002 | 빈칸(`0`) 개수 ≠ 2 | boundary |
+| E003 | Null / 범위 / 1~16 중복 | boundary |
+| E004 | 특정 줄 합 ≠ 34 (줄 종류·인덱스) | boundary |
+| E005 | 입·출력 계약 위반 (`int[6]` 형식·범위) | boundary |
+| E006 | 해 없음 / 풀이 불가 | entity 결과 → control/boundary 매핑 |
+| E007 | 해 다중 / 모호 | entity 결과 → control/boundary 매핑 |
+
+- **entity E001~E005 금지**: raise·return·문자열 emit 없음. entity는 10선 **판정·풀이 로직**만 수행한다.
+- E004 **로직**(줄 합 계산·불일치 판별)은 entity, **코드 부여·반환**은 boundary/control.
+
+## ECB
+
+- 의존 방향: **boundary → control → entity** (단방향).
+- **entity → \* import 금지** (entity는 순수 도메인, 외부 계층·I/O 미참조).
+- boundary: 입력 검증·출력·E001~E007 최종 반환. control: 흐름·entity 호출·결과 매핑.
+
+## Dual-Track TDD
+
+| Track | Layer | 테스트 ID | 파일 | Mock |
+|-------|-------|-----------|------|------|
+| Logic | entity, control | `D-*` | `tests/entity/test_d_*.py`, `tests/control/test_d_*.py` | **Domain Mock 금지** (`@patch` entity/control 금지) |
+| UI | boundary | `U-*` | `tests/boundary/test_u_*.py` | **Mock 허용** (I/O·위젯) |
+
+- AAA(Given/When/Then) 주석 필수. C2C: Test ID ↔ PRD FR ↔ Then.
+
+## TDD 사이클
+
+- **RED → GREEN → REFACTOR** 순서 준수. RED에서 `pytest` **FAIL** 확인 후 GREEN.
+- **금지**: `pytest.skip`, `xfail`, assert 완화·더미 통과, RED에서 `src/` 구현 선행.
+- RED 스켈레톤: Then = `pytest.fail("RED: {TestID} — …")` 한 줄 (호출·assert 본문 없음).
+- REFACTOR: 동작·계약 불변. golden/기존 테스트 회귀 확인.
+
+## AI 행동
+
+- **한국어**로 응답.
+- TDD 작업 시작 시 선언: `Phase: red|green|refactor` · `Layer: entity|control|boundary` · `Track: Logic|UI`.
+- **git commit / push는 사용자 명시 요청 시만** 수행.
+- 범위 밖(3×3/5×5, PyQt 완성 앱, 배포)은 제안·구현하지 않는다.
+
+## pytest
+
+- `pyproject.toml`: `testpaths = ["tests"]`, `pythonpath = ["src"]`.
+- conftest: 격자 픽스처·상수 import만 — 도메인 로직 금지.
+- `tests/entity/__init__.py`는 `src/entity` import shadow 유발 가능 — RED 작성 시 주의.
