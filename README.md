@@ -54,7 +54,8 @@ MagicSquare_260604/
 │   ├── 01.MagicSquare_ProblemDefinition_Report.md
 │   ├── 02.MagicSquare_Session3_CursorDesign_Report.md
 │   ├── 03.MagicSquare_TDD_RED_Report.md
-│   └── 04.MagicSquare_GREEN_GoldenMaster_Report.md
+│   ├── 04.MagicSquare_GREEN_GoldenMaster_Report.md
+│   └── 05.MagicSquare_DVAL04_GREEN_Report.md
 ├── Prompting/
 │   ├── 01.MagicSquare_ProblemDefinition-Transcript.md
 │   ├── 02.MagicSquare_Session3_CursorDesign-Transcript.md
@@ -68,9 +69,9 @@ MagicSquare_260604/
 │           ├── SKILL.md
 │           └── reference.md        # D-* Test ID SSOT
 ├── tests/
-│   ├── conftest.py                 # 격자 픽스처 (G1 등, 로직 없음)
+│   ├── conftest.py                 # grid_g1, grid_g1_solved (로직 없음)
 │   ├── entity/
-│   │   ├── test_d_val_04.py        # D-VAL-04 RED (Mom Test `/`)
+│   │   ├── test_d_val_04.py        # D-VAL-04 GREEN (Mom Test `/`)
 │   │   ├── test_d_loc_01.py        # D-LOC-01 GREEN
 │   │   └── test_d_sol_01.py        # D-SOL-01 GREEN + golden
 │   ├── golden/
@@ -82,6 +83,7 @@ MagicSquare_260604/
     ├── entity/
     │   ├── constants.py
     │   ├── locator.py
+    │   ├── validator.py
     │   └── solver.py
     ├── control/
     └── boundary/
@@ -93,7 +95,7 @@ MagicSquare_260604/
 
 | Test ID | PRD | 대상 |
 |---------|-----|------|
-| D-VAL-04 | FR-VAL-04 | 반대 `/` 합 = 34 **(Mom Test, RED ✅)** |
+| D-VAL-04 | FR-VAL-04 | 반대 `/` 합 = 34 **(Mom Test, GREEN ✅)** |
 | D-VAL-05 | FR-VAL-05 | 10선 전체 = 34 |
 | D-LOC-01 | FR-LOC-01 | 빈칸 2곳 좌표 (1-index) **(GREEN ✅)** |
 | D-SOL-01 | FR-SOL-01 | 빈칸 2개 풀이 → `int[6]` **(GREEN ✅ + golden)** |
@@ -119,14 +121,14 @@ MagicSquare_260604/
 ### 테스트 실행
 
 ```bash
-# D-VAL-04 RED (현재)
-python -m pytest tests/entity/test_d_val_04.py::test_d_val_04_anti_diagonal_sum -v
+# tests/ 전체 (현재 3 passed)
+python -m pytest tests/ -v
 
-# entity 테스트 전체
-python -m pytest tests/entity/ -v
+# D-VAL-04 GREEN (Mom Test `/`)
+python -m pytest tests/entity/test_d_val_04.py::test_d_val_04_anti_diagonal_sum -v
 ```
 
-RED 성공 기준: exit code ≠ 0 · FAIL 메시지에 Test ID 포함.
+GREEN 성공 기준: exit code = 0 · 대상 Test ID PASS.
 
 ### Git 브랜치 (관례)
 
@@ -157,6 +159,7 @@ Logic Track RED 작업 시 **`red`** 브랜치에서 진행.
 | [Report/02](Report/02.MagicSquare_Session3_CursorDesign_Report.md) | 세션 3 Harness · `.cursorrules` · Git 동기화 |
 | [Report/03](Report/03.MagicSquare_TDD_RED_Report.md) | spec→red 통합 · RED 스켈레톤 · green 전략 |
 | [Report/04](Report/04.MagicSquare_GREEN_GoldenMaster_Report.md) | D-LOC/D-SOL GREEN · Golden Master |
+| [Report/05](Report/05.MagicSquare_DVAL04_GREEN_Report.md) | D-VAL-04 GREEN · Mom Test `/` |
 | [Prompting/01](Prompting/01.MagicSquare_ProblemDefinition-Transcript.md) | STEP 1 Mom Test 인터뷰 Export |
 | [Prompting/02](Prompting/02.MagicSquare_Session3_CursorDesign-Transcript.md) | STEP 3 Harness 세션 Export |
 | [Prompting/03](Prompting/03.MagicSquare_TDD_RED-Transcript.md) | TDD RED 루프 세션 Export |
@@ -173,11 +176,10 @@ Logic Track RED 작업 시 **`red`** 브랜치에서 진행.
 | 상태 | 항목 |
 |------|------|
 | ✅ | PRD · Mom Test · ECB · Harness (`spec`/`red`) |
-| ✅ | **D-LOC-01** GREEN · **D-SOL-01** GREEN + golden |
-| ✅ | `tests/_approval.py` · `tests/golden/d_sol_01_g1_step_a.approved.txt` |
-| 🔲 | D-VAL-04 GREEN — `validate_anti_diagonal` (Mom Test `/`) |
+| ✅ | **D-LOC-01** · **D-SOL-01** · **D-VAL-04** GREEN (+ golden) |
+| ✅ | `tests/` **3 passed** · `origin/green` (`4f82550`까지) |
 | 🔲 | D-VAL-05 · U-IN-01/02 RED/GREEN |
-| 🔲 | `green` commit · `origin/green` push (요청 시) |
+| 🔲 | REFACTOR (`/refactor-smell` → `/refactor-safe`) |
 
 ## 표면 문제 (하지 않을 것)
 
